@@ -17,7 +17,8 @@
     "@keystatic/core": "^0.5.50",
     "astro": "^5.7.10",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "tslib": "^2.8.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
