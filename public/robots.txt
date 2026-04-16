@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+Sitemap: https://example.ru/sitemap-index.xml
+
+# Host: https://example.ru

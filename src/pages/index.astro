@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 3);
+---
+
+<BaseLayout
+  title="Блог об ИИ для бизнеса"
+  description="Upgrade - AI-агентство. Практические статьи про внедрение ИИ, автоматизацию и рост бизнеса."
+>
+  <main class="container">
+    <div class="hero">
+      <h1>Upgrade</h1>
+      <p>Внедряем искусственный интеллект в бизнес. Пишем о том, что работает на практике: автоматизация, агенты, инструменты.</p>
+    </div>
+
+    <section>
+      <div class="section-title">
+        <h2>Последние статьи</h2>
+        <a href="/blog/">Все статьи &rarr;</a>
+      </div>
+      <div class="posts-list">
+        {posts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,85 @@
+---
+interface ArticleData {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  image?: string;
+  url: string;
+}
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  type: 'organization' | 'article' | 'breadcrumb';
+  article?: ArticleData;
+  breadcrumbs?: BreadcrumbItem[];
+}
+
+const { type, article, breadcrumbs } = Astro.props;
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://example.ru';
+
+let schema: Record<string, unknown> = {};
+
+if (type === 'organization') {
+  schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Upgrade',
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.svg`,
+    description: 'AI-агентство Upgrade - внедрение искусственного интеллекта в бизнес',
+  };
+}
+
+if (type === 'article' && article) {
+  const imageUrl = article.image
+    ? new URL(article.image, Astro.site).toString()
+    : `${siteUrl}/og-default.jpg`;
+
+  schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.description,
+    datePublished: article.pubDate.toISOString(),
+    ...(article.updatedDate && { dateModified: article.updatedDate.toISOString() }),
+    author: {
+      '@type': 'Organization',
+      name: 'Upgrade',
+      url: siteUrl,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Upgrade',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/favicon.svg`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': article.url,
+    },
+    image: imageUrl,
+  };
+}
+
+if (type === 'breadcrumb' && breadcrumbs) {
+  schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.label,
+      ...(item.href && { item: `${siteUrl}${item.href}` }),
+    })),
+  };
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

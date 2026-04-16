@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+
+  return tags.map((tag) => ({
+    params: { tag: tag.toLowerCase() },
+    props: { tag, allPosts: posts },
+  }));
+}
+
+const { tag, allPosts } = Astro.props;
+
+const posts = allPosts
+  .filter((post: any) =>
+    post.data.tags.some((t: string) => t.toLowerCase() === tag.toLowerCase())
+  )
+  .sort((a: any, b: any) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+
+<BaseLayout
+  title={`Статьи по теме: ${tag}`}
+  description={`Подборка статей по теме "${tag}" - Upgrade блог.`}
+>
+  <main class="container">
+    <Breadcrumbs items={[
+      { label: 'Главная', href: '/' },
+      { label: 'Блог', href: '/blog/' },
+      { label: tag },
+    ]} />
+
+    <h1>#{tag}</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+      {posts.length} {posts.length === 1 ? 'статья' : posts.length < 5 ? 'статьи' : 'статей'}
+    </p>
+
+    <div class="posts-list">
+      {posts.map((post: any) => (
+        <PostCard post={post} />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

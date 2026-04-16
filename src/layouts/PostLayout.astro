@@ -1,0 +1,77 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import JsonLd from '../components/JsonLd.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, canonical } = post.data;
+
+const pubDateFormatted = pubDate.toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const updatedDateFormatted = updatedDate?.toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const articleUrl = new URL(`/blog/${post.id}/`, Astro.site).toString();
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={cover}
+  canonical={canonical}
+  type="article"
+>
+  <main class="container">
+    <Breadcrumbs items={[
+      { label: 'Главная', href: '/' },
+      { label: 'Блог', href: '/blog/' },
+      { label: title },
+    ]} />
+
+    <JsonLd
+      type="article"
+      article={{
+        title,
+        description,
+        pubDate,
+        updatedDate,
+        image: cover,
+        url: articleUrl,
+      }}
+    />
+
+    <article class="prose">
+      <div class="article-header">
+        <div class="meta">
+          <time datetime={pubDate.toISOString()}>{pubDateFormatted}</time>
+          {updatedDate && (
+            <span> &middot; Обновлено: <time datetime={updatedDate.toISOString()}>{updatedDateFormatted}</time></span>
+          )}
+        </div>
+        <h1>{title}</h1>
+        <p class="description">{description}</p>
+        {tags.length > 0 && (
+          <div class="tags" style="margin-top: 1rem;">
+            {tags.map((tag) => (
+              <a href={`/blog/tag/${tag.toLowerCase()}/`} class="tag">{tag}</a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <slot />
+    </article>
+  </main>
+</BaseLayout>
