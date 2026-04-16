@@ -25,16 +25,43 @@ src/
   data/blog/               # Статьи (.md и .mdoc)
   components/              # SeoHead, JsonLd, Header, Footer, PostCard, Breadcrumbs
   layouts/                 # BaseLayout, PostLayout
+  lib/
+    db.ts                  # Neon Postgres подключение + типы
+    github.ts              # Коммит файлов через GitHub API
+    perplexity.ts          # Обертка Perplexity API
+    slugify.ts             # Транслитерация для URL
   pages/
     index.astro            # Главная
     blog/                  # Лента, статьи, теги
-    api/                   # generate.ts, analyze.ts (Perplexity)
+    api/
+      generate.ts          # Ручная генерация (Perplexity)
+      analyze.ts           # SEO-анализ (Perplexity)
+      cron/generate.ts     # Cron: поиск тем + генерация черновиков
+      drafts/[id].ts       # Превью/одобрение/отклонение статей
+      telegram/webhook.ts  # Telegram callback кнопок
     rss.xml.ts             # RSS фид
   integrations/
-    keystatic-custom.mjs   # Кастомная интеграция Keystatic (OAuth fix для Vercel)
+    keystatic-custom.mjs   # Кастомная интеграция Keystatic (OAuth fix)
   keystatic-api-override.js # API handler с credentials и URL fix
 keystatic.config.tsx       # Конфиг Keystatic CMS
+scripts/
+  init-db.mjs              # Инициализация таблиц в Postgres
+vercel.json                # Cron расписание
 ```
+
+## Контент-пайплайн (автоматический)
+
+1. **Cron** (`/api/cron/generate/`) каждый будний день 9:00 UTC
+2. Perplexity ищет трендовую тему про ИИ для бизнеса
+3. Генерирует статью → сохраняет в Postgres (status: pending)
+4. Telegram бот отправляет уведомление с кнопками Одобрить/Отклонить
+5. При одобрении → коммит .md в GitHub → Vercel автодеплой → статья на сайте
+
+**Таблицы БД:**
+- `articles` - статьи (id, title, slug, description, content, tags, status, source_url, dates)
+- `topic_queue` - очередь тем для генерации
+
+**Статусы:** draft → pending → approved/published/rejected
 
 ## Важные особенности Astro 5
 
@@ -58,6 +85,11 @@ keystatic.config.tsx       # Конфиг Keystatic CMS
 - `KEYSTATIC_GITHUB_CLIENT_SECRET` - Client Secret GitHub App
 - `KEYSTATIC_SECRET` - Рандомный секрет для сессий
 - `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` - Slug приложения (`upgrade-seo-blog-keystatic`)
+- `DATABASE_URL` - Neon Postgres connection string
+- `GITHUB_TOKEN` - PAT для коммитов через API
+- `TELEGRAM_BOT_TOKEN` - Токен Telegram бота
+- `TELEGRAM_CHAT_ID` - Chat ID для уведомлений (581558039)
+- `CRON_SECRET` - Секрет для защиты cron эндпоинта
 - `PERPLEXITY_API_KEY` - Ключ Perplexity API (пока не добавлен)
 
 ## Команды
@@ -91,5 +123,6 @@ pnpm preview      # Превью билда
 
 ## TODO
 
+- [ ] Добавить PERPLEXITY_API_KEY в Vercel env (запускает автоматику)
 - [ ] Выбрать и подключить домен (обновить site в astro.config.mjs и robots.txt)
-- [ ] Добавить PERPLEXITY_API_KEY в Vercel env
+- [ ] Подать на индексацию в Яндекс Вебмастер и Google Search Console
