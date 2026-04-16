@@ -15,6 +15,7 @@
     "@astrojs/vercel": "^9.0.5",
     "@keystatic/astro": "^5.0.6",
     "@keystatic/core": "^0.5.50",
+    "@neondatabase/serverless": "^1.0.2",
     "astro": "^5.7.10",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
@@ -25,5 +26,8 @@
       "esbuild",
       "sharp"
     ]
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2"
   }
 }
