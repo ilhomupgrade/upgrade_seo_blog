@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { fileURLToPath } from 'node:url';
 import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
@@ -9,4 +10,13 @@ export default defineConfig({
   integrations: [sitemap(), react(), keystatic()],
   trailingSlash: 'always',
   adapter: vercel(),
+  vite: {
+    resolve: {
+      alias: {
+        '@keystatic/astro/internal/keystatic-api.js': fileURLToPath(
+          new URL('./src/keystatic-api-override.js', import.meta.url)
+        ),
+      },
+    },
+  },
 });
