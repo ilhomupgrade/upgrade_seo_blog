@@ -1,9 +1,12 @@
 import { config, collection, singleton, fields } from '@keystatic/core';
 
 export default config({
-  storage: {
-    kind: 'local',
-  },
+  storage: import.meta.env.DEV
+    ? { kind: 'local' }
+    : {
+        kind: 'github',
+        repo: { owner: 'ilhomupgrade', name: 'upgrade_seo_blog' },
+      },
 
   ui: {
     brand: { name: 'Upgrade Blog' },
