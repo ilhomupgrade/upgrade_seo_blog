@@ -2,12 +2,12 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-const PERPLEXITY_API = 'https://api.perplexity.ai/chat/completions';
+const PERPLEXITY_API = 'https://openrouter.ai/api/v1/chat/completions';
 
 export const POST: APIRoute = async ({ request }) => {
-  const apiKey = import.meta.env.PERPLEXITY_API_KEY;
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'PERPLEXITY_API_KEY не настроен' }), {
+    return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY не настроен' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar',
+        model: 'perplexity/sonar',
         messages: [
           {
             role: 'system',
@@ -92,7 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!response.ok) {
       const error = await response.text();
-      return new Response(JSON.stringify({ error: `Perplexity API: ${error}` }), {
+      return new Response(JSON.stringify({ error: `OpenRouter API: ${error}` }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
       });

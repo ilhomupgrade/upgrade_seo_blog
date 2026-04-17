@@ -13,9 +13,9 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const apiKey = import.meta.env.PERPLEXITY_API_KEY;
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return json({ error: 'PERPLEXITY_API_KEY не настроен' }, 500);
+    return json({ error: 'OPENROUTER_API_KEY не настроен' }, 500);
   }
 
   const sql = neon(import.meta.env.DATABASE_URL);

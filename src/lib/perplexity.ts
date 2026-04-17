@@ -1,4 +1,4 @@
-const PERPLEXITY_API = 'https://api.perplexity.ai/chat/completions';
+const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
 
 export async function askPerplexity(
   apiKey: string,
@@ -7,14 +7,14 @@ export async function askPerplexity(
   temperature = 0.5,
   maxTokens = 4000,
 ): Promise<string> {
-  const response = await fetch(PERPLEXITY_API, {
+  const response = await fetch(OPENROUTER_API, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'sonar',
+      model: 'perplexity/sonar',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -25,7 +25,7 @@ export async function askPerplexity(
   });
 
   if (!response.ok) {
-    throw new Error(`Perplexity API error: ${response.status} ${await response.text()}`);
+    throw new Error(`OpenRouter API error: ${response.status} ${await response.text()}`);
   }
 
   const data = await response.json();
