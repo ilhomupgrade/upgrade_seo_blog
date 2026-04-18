@@ -1,12 +1,11 @@
 import type { APIRoute } from 'astro';
 import { neon } from '@neondatabase/serverless';
-import { askPerplexity, parseJSON } from '../../../lib/perplexity';
+import { askPerplexityWithCitations, parseJSON } from '../../../lib/perplexity';
 import { slugify } from '../../../lib/slugify';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
-  // Защита: только Vercel Cron или секретный ключ
   const authHeader = request.headers.get('authorization');
   const cronSecret = import.meta.env.CRON_SECRET;
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
@@ -14,99 +13,147 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   const apiKey = import.meta.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return json({ error: 'OPENROUTER_API_KEY не настроен' }, 500);
-  }
+  if (!apiKey) return json({ error: 'OPENROUTER_API_KEY не настроен' }, 500);
 
   const sql = neon(import.meta.env.DATABASE_URL);
 
   try {
-    // 1. Ищем трендовую тему через Perplexity
-    const topicRaw = await askPerplexity(
+    const today = new Date();
+    const from = new Date(today.getTime() - 2 * 86400000);
+    const fromStr = from.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+
+    // 1. Ищем одну свежую новость с источниками
+    const newsSearch = await askPerplexityWithCitations(
       apiKey,
-      'Ты - SEO-аналитик для русскоязычного блога об ИИ и бизнесе. Отвечай только валидным JSON.',
-      `Найди одну актуальную и трендовую тему для статьи в русскоязычный блог об ИИ и бизнесе.
-Тема должна быть:
-- Актуальной (последние новости, тренды, обновления ИИ)
-- Интересной для бизнес-аудитории в России
-- С хорошим SEO-потенциалом
+      'Ты - новостной аналитик в сфере ИИ. Ищешь только реальные, подтвержденные новости с указанием источников. Отвечай только валидным JSON.',
+      `Найди ОДНУ самую значимую новость в сфере искусственного интеллекта за период с ${fromStr} по ${todayStr}.
+
+Новость должна быть:
+- Реальной и подтвержденной как минимум двумя независимыми источниками
+- Интересной для бизнес-аудитории (релиз модели, крупная сделка, запуск продукта, исследование, регуляция)
+- Произошедшей именно в указанный период
 
 Верни JSON:
 {
-  "topic": "Тема статьи",
-  "keywords": ["ключ1", "ключ2", "ключ3"],
-  "angle": "Угол подачи - почему это важно для бизнеса"
+  "headline": "Краткий заголовок новости на русском",
+  "summary": "Что произошло - 2-3 предложения с ключевыми фактами и датами",
+  "date": "Дата события в формате YYYY-MM-DD",
+  "key_entities": ["компании", "люди", "продукты - названия как в оригинале"],
+  "sources_used": ["URL1", "URL2"]
 }`,
-      0.7,
-      1000,
+      0.3,
+      1500,
     );
 
-    const topicData = parseJSON(topicRaw);
-    if (!topicData?.topic) {
-      return json({ error: 'Не удалось определить тему', raw: topicRaw }, 500);
+    const news = parseJSON(newsSearch.content);
+    if (!news?.headline || !news?.summary) {
+      return json({ error: 'Не удалось найти свежую новость', raw: newsSearch.content }, 500);
     }
 
-    // Проверим что такой темы ещё нет
+    // Citations от Sonar - это реальные URL, которые модель использовала
+    const citations = [...new Set([
+      ...(newsSearch.citations || []),
+      ...(news.sources_used || []),
+    ])].filter(Boolean);
+
+    if (citations.length < 2) {
+      return json({ error: 'Недостаточно источников для новости', news, citations }, 422);
+    }
+
+    // Дубль-чек по заголовку
     const existing = await sql`
-      SELECT id FROM articles WHERE title ILIKE ${'%' + topicData.topic.slice(0, 30) + '%'}
+      SELECT id FROM articles WHERE title ILIKE ${'%' + news.headline.slice(0, 40) + '%'}
     `;
     if (existing.length > 0) {
-      return json({ skipped: true, reason: 'Похожая тема уже есть', topic: topicData.topic });
+      return json({ skipped: true, reason: 'Такая новость уже есть', headline: news.headline });
     }
 
-    // 2. Генерируем статью
-    const articleRaw = await askPerplexity(
+    // 2. Глубокий обзор новости
+    const sourcesBlock = citations.map((u, i) => `[${i + 1}] ${u}`).join('\n');
+    const articleResp = await askPerplexityWithCitations(
       apiKey,
-      `Ты - профессиональный копирайтер AI-агентства Upgrade. Пишешь экспертные статьи на русском языке для бизнес-аудитории.
+      `Ты - старший аналитик AI-агентства Upgrade. Пишешь глубокие экспертные обзоры новостей ИИ на русском языке для бизнес-аудитории.
 
-Правила:
-- Пиши живым языком без канцелярита
-- Используй подзаголовки ## и ###
-- Добавляй списки и конкретные примеры
-- В конце статьи - CTA с предложением услуг Upgrade
-- Статья должна быть 800-1200 слов
-- Не используй длинные тире, используй короткие (-)
-- Не используй букву е (с точками)
+Жесткие правила:
+- Статья 1200-1800 слов
+- Структура: что произошло -> контекст и предыстория -> технический разбор -> влияние на бизнес в России -> что делать сейчас -> CTA
+- В каждом фактологическом утверждении ставь ссылку на источник в формате [(источник)](url)
+- Используй ТОЛЬКО факты из предоставленных источников, ничего не выдумывай
+- Не менее 4 ссылок на источники в тексте
+- Живой экспертный язык, без канцелярита
+- Подзаголовки ## и ###, списки, конкретные цифры
+- Не используй букву е с точками
+- Не используй длинные тире, только короткие (-)
 - Не используй эмодзи
 - Формат: чистый Markdown`,
-      `Напиши статью на тему: "${topicData.topic}"
-Угол подачи: ${topicData.angle || 'экспертный анализ для бизнеса'}
-Ключевые слова для SEO: ${(topicData.keywords || []).join(', ')}
+      `Напиши глубокий экспертный обзор новости.
+
+НОВОСТЬ: ${news.headline}
+СУТЬ: ${news.summary}
+ДАТА: ${news.date}
+КЛЮЧЕВЫЕ СУЩНОСТИ: ${(news.key_entities || []).join(', ')}
+
+ИСТОЧНИКИ (используй их ссылки в тексте):
+${sourcesBlock}
+
+Для обложки: из предоставленных источников возьми прямой URL главной иллюстрации (og:image или первое большое фото на странице). URL должен быть на реальный jpg/png/webp, НЕ на логотип сайта и НЕ на favicon. Если на странице нет подходящего изображения - верни null.
 
 Верни JSON:
 {
-  "title": "Заголовок статьи (до 60 символов)",
-  "description": "SEO-описание (до 155 символов)",
-  "tags": ["тег1", "тег2", "тег3"],
-  "content": "Полный текст статьи в Markdown"
+  "title": "SEO-заголовок на русском, до 70 символов, с ключевой сущностью и сутью новости",
+  "description": "SEO-описание, до 155 символов, с датой и главным фактом",
+  "tags": ["3-5 тегов на русском"],
+  "cover_url": "прямой URL на изображение из первоисточника (og:image или крупное фото статьи), либо null если не нашел",
+  "cover_source": "URL первоисточника, с которого взята картинка",
+  "content": "Полный markdown текст статьи 1200-1800 слов со ссылками на источники в формате [(источник)](url) внутри текста. В конце раздел '## Источники' со списком всех использованных ссылок."
 }`,
-      0.7,
-      4000,
+      0.4,
+      6000,
     );
 
-    const article = parseJSON(articleRaw);
+    const article = parseJSON(articleResp.content);
     if (!article?.title || !article?.content) {
-      return json({ error: 'Не удалось сгенерировать статью', raw: articleRaw }, 500);
+      return json({ error: 'Не удалось сгенерировать обзор', raw: articleResp.content }, 500);
+    }
+
+    // Жесткая проверка: минимум 3 ссылки в тексте
+    const linkCount = (article.content.match(/\]\(https?:\/\//g) || []).length;
+    if (linkCount < 3) {
+      return json({ error: 'Слишком мало ссылок на источники в тексте', linkCount, content: article.content }, 422);
+    }
+
+    // Валидируем cover_url от модели и при неудаче пытаемся вытащить og:image из первого источника
+    const cover = await resolveCover(article.cover_url, citations);
+    if (!cover) {
+      return json({ error: 'Не удалось получить картинку из первоисточников', tried_cover: article.cover_url, sources: citations }, 422);
     }
 
     const slug = slugify(article.title);
-    const tags = article.tags || topicData.keywords || [];
+    const tags = article.tags || [];
+    const allCitations = [...new Set([...citations, ...(articleResp.citations || [])])];
 
-    // 3. Сохраняем в БД как черновик (pending = ждет одобрения)
+    // Сохраняем source_url как JSON с исходной новостью и всеми цитатами
+    const sourceData = JSON.stringify({
+      headline: news.headline,
+      news_date: news.date,
+      citations: allCitations,
+      cover,
+      cover_source: article.cover_source || null,
+    });
+
     const result = await sql`
       INSERT INTO articles (title, slug, description, content, tags, status, source_url)
-      VALUES (${article.title}, ${slug}, ${article.description || ''}, ${article.content}, ${tags}, 'pending', ${topicData.topic})
+      VALUES (${article.title}, ${slug}, ${article.description || ''}, ${article.content}, ${tags}, 'pending', ${sourceData})
       RETURNING id, title, slug
     `;
 
-    // 4. Отправляем уведомление в Telegram
+    // Telegram уведомление
     const telegramToken = import.meta.env.TELEGRAM_BOT_TOKEN;
     const telegramChatId = import.meta.env.TELEGRAM_CHAT_ID;
-
     if (telegramToken && telegramChatId) {
       const previewUrl = `https://upgrade-seo-blog.vercel.app/api/drafts/${result[0].id}/`;
-      const message = `Новая статья готова к модерации:\n\n*${article.title}*\n\n${article.description}\n\nТеги: ${tags.join(', ')}\n\n[Превью](${previewUrl})`;
-
+      const message = `Свежий обзор новости ИИ готов к модерации:\n\n*${article.title}*\n\n${article.description}\n\nИсточников: ${allCitations.length}\nСсылок в тексте: ${linkCount}\n\n[Превью](${previewUrl})`;
       await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,6 +174,9 @@ export const GET: APIRoute = async ({ request }) => {
     return json({
       success: true,
       article: { id: result[0].id, title: result[0].title, slug: result[0].slug },
+      news: { headline: news.headline, date: news.date },
+      citations: allCitations.length,
+      links_in_text: linkCount,
     });
   } catch (err) {
     return json({ error: String(err) }, 500);
@@ -138,4 +188,59 @@ function json(data: any, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+async function resolveCover(modelUrl: string | null | undefined, sources: string[]): Promise<string | null> {
+  const candidates: string[] = [];
+  if (modelUrl && isValidImageUrl(modelUrl)) candidates.push(modelUrl);
+  for (const src of sources) {
+    const og = await extractOgImage(src).catch(() => null);
+    if (og) candidates.push(og);
+  }
+  for (const url of candidates) {
+    if (await imageReachable(url)) return url;
+  }
+  return null;
+}
+
+function isValidImageUrl(url: string): boolean {
+  if (!/^https?:\/\//.test(url)) return false;
+  if (/favicon|logo|icon/i.test(url)) return false;
+  return /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url) || url.includes('og') || url.includes('image');
+}
+
+async function extractOgImage(pageUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(pageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UpgradeBot/1.0)' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+      || html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+    if (!ogMatch) return null;
+    const img = ogMatch[1];
+    if (img.startsWith('http')) return img;
+    if (img.startsWith('//')) return 'https:' + img;
+    try { return new URL(img, pageUrl).toString(); } catch { return null; }
+  } catch {
+    return null;
+  }
+}
+
+async function imageReachable(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, {
+      method: 'HEAD',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UpgradeBot/1.0)' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return false;
+    const ct = res.headers.get('content-type') || '';
+    return ct.startsWith('image/');
+  } catch {
+    return false;
+  }
 }

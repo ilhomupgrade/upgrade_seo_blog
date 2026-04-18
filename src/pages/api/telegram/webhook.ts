@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { neon } from '@neondatabase/serverless';
 import { commitFileToGitHub } from '../../../lib/github';
+import { buildArticleMarkdown } from '../../../lib/frontmatter';
 
 export const prerender = false;
 
@@ -44,20 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (action === 'approve') {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const frontmatter = [
-        '---',
-        `title: "${article.title.replace(/"/g, '\\"')}"`,
-        `description: "${(article.description || '').replace(/"/g, '\\"')}"`,
-        `pubDate: ${today}`,
-        `author: "Upgrade"`,
-        `tags: [${(article.tags || []).map((t: string) => `"${t}"`).join(', ')}]`,
-        `cover: "/og-default.jpg"`,
-        '---',
-        '',
-        article.content,
-      ].join('\n');
-
+      const frontmatter = buildArticleMarkdown(article as any);
       const filePath = `src/data/blog/${article.slug}.md`;
       const githubToken = import.meta.env.GITHUB_TOKEN;
 
