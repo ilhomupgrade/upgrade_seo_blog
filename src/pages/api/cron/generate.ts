@@ -30,9 +30,10 @@ export const GET: APIRoute = async ({ request }) => {
       `Найди ОДНУ самую значимую новость в сфере искусственного интеллекта за период с ${fromStr} по ${todayStr}.
 
 Новость должна быть:
-- Реальной и подтвержденной как минимум двумя независимыми источниками
+- Реальной и подтвержденной первоисточником (официальный сайт, пресс-релиз, крупное отраслевое издание - не YouTube, не соцсети)
 - Интересной для бизнес-аудитории (релиз модели, крупная сделка, запуск продукта, исследование, регуляция)
 - Произошедшей именно в указанный период
+- В sources_used верни 2-4 разных URL: первоисточник + независимые публикации в профильных СМИ (TechCrunch, The Verge, Habr, vc.ru, РБК и т.п.)
 
 Верни JSON:
 {
@@ -57,8 +58,13 @@ export const GET: APIRoute = async ({ request }) => {
       ...(news.sources_used || []),
     ])].filter(Boolean);
 
-    if (citations.length < 2) {
-      return json({ error: 'Недостаточно источников для новости', news, citations }, 422);
+    if (citations.length < 1) {
+      return json({ error: 'Нет источников для новости', news, citations }, 422);
+    }
+    // Фильтруем мусорные источники (YouTube, соцсети) - для SEO нужны текстовые СМИ
+    const qualitySources = citations.filter((u) => !/youtube\.com|youtu\.be|x\.com|twitter\.com|t\.me|instagram\.com|facebook\.com/i.test(u));
+    if (qualitySources.length < 1) {
+      return json({ error: 'Источники только из соцсетей/видео - неподходит', citations }, 422);
     }
 
     // Дубль-чек по заголовку
@@ -70,7 +76,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // 2. Глубокий обзор новости
-    const sourcesBlock = citations.map((u, i) => `[${i + 1}] ${u}`).join('\n');
+    const sourcesBlock = qualitySources.map((u, i) => `[${i + 1}] ${u}`).join('\n');
     const articleResp = await askPerplexityWithCitations(
       apiKey,
       `Ты - старший аналитик AI-агентства Upgrade. Пишешь глубокие экспертные обзоры новостей ИИ на русском языке для бизнес-аудитории.
@@ -124,14 +130,14 @@ ${sourcesBlock}
     }
 
     // Валидируем cover_url от модели и при неудаче пытаемся вытащить og:image из первого источника
-    const cover = await resolveCover(article.cover_url, citations);
+    const cover = await resolveCover(article.cover_url, qualitySources);
     if (!cover) {
-      return json({ error: 'Не удалось получить картинку из первоисточников', tried_cover: article.cover_url, sources: citations }, 422);
+      return json({ error: 'Не удалось получить картинку из первоисточников', tried_cover: article.cover_url, sources: qualitySources }, 422);
     }
 
     const slug = slugify(article.title);
     const tags = article.tags || [];
-    const allCitations = [...new Set([...citations, ...(articleResp.citations || [])])];
+    const allCitations = [...new Set([...qualitySources, ...(articleResp.citations || [])])];
 
     // Сохраняем source_url как JSON с исходной новостью и всеми цитатами
     const sourceData = JSON.stringify({
