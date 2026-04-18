@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ request }) => {
     const { content, citations } = await askPerplexityWithCitations(
       apiKey,
       'Ты - редактор новостного дайджеста про ИИ. Пишешь на русском языке. Кратко, по делу, только факты.',
-      `Найди 5-7 самых важных новостей в сфере искусственного интеллекта за ${fromStr} - ${todayStr}.
+      `Найди 7 самых свежих и важных новостей в сфере искусственного интеллекта. Бери самые актуальные из доступных тебе.
 
 Для каждой новости укажи:
 - Источник (название издания или компании)
@@ -42,10 +42,10 @@ export const GET: APIRoute = async ({ request }) => {
 - тезис 3
 
 Требования:
-- Только реальные новости с ${fromStr} по ${todayStr}
-- Источники: TechCrunch, The Verge, Reuters, Bloomberg, Wired, OpenAI blog, Anthropic blog, Google blog, VC.ru, Habr, RBC и подобные
-- Без вступлений, без итогов, без лишних слов
-- Только сами блоки новостей`
+- Только реальные новости из реальных источников
+- Приоритет: TechCrunch, The Verge, Reuters, Bloomberg, Wired, OpenAI blog, Anthropic blog, Google blog, VC.ru, Habr, RBC
+- Без вступлений, без итогов, без лишних слов - только сами блоки новостей
+- Ровно 7 новостей`
     );
 
     // Build sources footer
