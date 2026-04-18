@@ -2,6 +2,18 @@
 const year = new Date().getFullYear();
 ---
 
+<section class="footer-cta">
+  <div class="footer-cta__inner">
+    <div class="footer-cta__text">
+      <h2>Бесплатный мини-курс по ИИ для бизнеса</h2>
+      <p>7 уроков о том, как внедрить нейросети в работу компании и получить измеримый рост.</p>
+    </div>
+    <a href="https://upgrade-agency.ru/ai-course" target="_blank" rel="noopener" class="footer-cta__btn">
+      Получить курс
+    </a>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div class="inner">
     <span>&copy; {year} Upgrade</span>
@@ -10,3 +22,63 @@ const year = new Date().getFullYear();
     </nav>
   </div>
 </footer>
+
+<style>
+  .footer-cta {
+    border-top: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.02));
+    padding: 4rem 1.5rem;
+    margin-top: 4rem;
+  }
+  .footer-cta__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .footer-cta__text {
+    flex: 1;
+    min-width: 280px;
+  }
+  .footer-cta__text h2 {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.75rem;
+    color: #f5f1e8;
+    font-weight: 500;
+  }
+  .footer-cta__text p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+    max-width: 520px;
+  }
+  .footer-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.75rem;
+    background: #2563eb;
+    color: #fff !important;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .footer-cta__btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+  @media (max-width: 640px) {
+    .footer-cta { padding: 3rem 1.25rem; }
+    .footer-cta__btn { width: 100%; }
+  }
+</style>

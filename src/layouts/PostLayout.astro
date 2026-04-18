@@ -3,6 +3,8 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import JsonLd from '../components/JsonLd.astro';
+import CourseCta from '../components/CourseCta.astro';
+import StickyCta from '../components/StickyCta.astro';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -76,10 +78,90 @@ const articleUrl = new URL(`/blog/${post.id}/`, Astro.site).toString();
         )}
       </div>
 
-      <slot />
+      <div class="prose-content">
+        <slot />
+      </div>
+
+      <CourseCta variant="end" />
     </article>
   </main>
+
+  <StickyCta />
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    var content = document.querySelector('.prose-content');
+    if (!content) return;
+    var paragraphs = content.querySelectorAll(':scope > p');
+    if (paragraphs.length < 4) return;
+
+    var cta = document.createElement('aside');
+    cta.className = 'course-cta course-cta--inline';
+    cta.innerHTML = '' +
+      '<div class="course-cta__text">' +
+      '<strong>Бесплатный мини-курс по ИИ для бизнеса</strong>' +
+      '<span>7 уроков о том, как внедрить нейросети в работу компании.</span>' +
+      '</div>' +
+      '<a href="https://upgrade-agency.ru/ai-course" target="_blank" rel="noopener" class="course-cta__btn">Получить курс</a>';
+
+    var target = paragraphs[2];
+    target.parentNode.insertBefore(cta, target.nextSibling);
+  })();
+</script>
+
+<style is:global>
+  .course-cta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0.04));
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 14px;
+    margin: 2.5rem 0;
+    flex-wrap: wrap;
+  }
+  .course-cta__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 220px;
+  }
+  .course-cta__text strong {
+    color: var(--text);
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+  .course-cta__text span {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .course-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: #fff !important;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .course-cta__btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+  @media (max-width: 520px) {
+    .course-cta { padding: 1.25rem; }
+    .course-cta__btn { width: 100%; }
+  }
+</style>
 
 <style>
   .article-cover {
