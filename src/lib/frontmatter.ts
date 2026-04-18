@@ -22,7 +22,8 @@ export function buildArticleMarkdown(article: ArticleRow): string {
   }
 
   const title = article.title.replace(/"/g, '\\"');
-  const description = (article.description || '').replace(/"/g, '\\"');
+  const rawDesc = (article.description || '').replace(/"/g, '\\"');
+  const description = rawDesc.length > 160 ? rawDesc.slice(0, 155).replace(/[\s,.;:]+$/, '') + '...' : rawDesc;
   const tags = (article.tags || []).map((t) => `"${t.replace(/"/g, '\\"')}"`).join(', ');
 
   return [

@@ -1,6 +1,6 @@
 ---
 title: "Microsoft выпустила MAI-Transcribe-1, MAI-Voice-1 и MAI-Image-2"
-description: "16 апреля 2026: Microsoft представила три собственные ИИ-модели MAI для транскрипции, голоса и изображений. Превосходит Whisper OpenAI, доступны в Foundry и Playground."
+description: "16 апреля 2026: Microsoft представила три ИИ-модели MAI для транскрипции, голоса и изображений. Превосходят Whisper OpenAI, доступны в Foundry."
 pubDate: 2026-04-18
 author: "Upgrade"
 tags: ["Microsoft MAI", "ИИ-модели", "Транскрипция речи", "Генерация голоса", "Генерация изображений"]
