@@ -91,10 +91,10 @@ img {
 
 .post-card {
   display: block;
-  padding: 1.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  overflow: hidden;
   transition: border-color 0.2s;
   text-decoration: none;
 }

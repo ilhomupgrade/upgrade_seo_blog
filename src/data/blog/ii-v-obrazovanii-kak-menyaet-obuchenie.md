@@ -4,7 +4,7 @@ description: "Искусственный интеллект трансформи
 pubDate: 2026-04-02
 author: "Upgrade"
 tags: ["ИИ в образовании", "персонализированное обучение", "образовательные технологии"]
-cover: "https://neirolab.ru/wp-content/uploads/2024/05/ai-education.jpg"
+cover: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&h=630&fit=crop"
 ---
 
 ## ИИ в образовании: как технологии меняют обучение

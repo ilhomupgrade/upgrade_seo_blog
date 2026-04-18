@@ -4,7 +4,7 @@ description: "Узнайте, как искусственный интеллек
 pubDate: 2026-04-10
 author: "Upgrade"
 tags: ["ИИ", "клиентский сервис", "автоматизация", "чат-боты", "техподдержка"]
-cover: "https://www.sap.com/central-asia-caucasus/resources/ai-in-customer-service-and-support"
+cover: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=630&fit=crop"
 ---
 
 # ИИ для клиентского сервиса: как снизить нагрузку на операторов

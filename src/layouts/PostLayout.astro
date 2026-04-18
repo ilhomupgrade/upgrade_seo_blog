@@ -53,6 +53,11 @@ const articleUrl = new URL(`/blog/${post.id}/`, Astro.site).toString();
     />
 
     <article class="prose">
+      {cover && (
+        <div class="article-cover">
+          <img src={cover} alt={title} loading="eager" decoding="async" />
+        </div>
+      )}
       <div class="article-header">
         <div class="meta">
           <time datetime={pubDate.toISOString()}>{pubDateFormatted}</time>
@@ -75,3 +80,20 @@ const articleUrl = new URL(`/blog/${post.id}/`, Astro.site).toString();
     </article>
   </main>
 </BaseLayout>
+
+<style>
+  .article-cover {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+    background: var(--bg-card);
+  }
+  .article-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+</style>

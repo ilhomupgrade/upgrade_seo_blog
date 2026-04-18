@@ -4,7 +4,7 @@ description: "ИИ автоматизирует рутину, прогнозир
 pubDate: 2026-04-09
 author: "Upgrade"
 tags: ["ИИ", "управление проектами", "автоматизация", "риски", "проектный менеджмент"]
-cover: "https://kaiten.ru/wp-content/uploads/2024/04/ii-dlya-upravleniya-proektami-1024x538.jpg"
+cover: "https://images.unsplash.com/photo-1542626991-cbc4e32524cc?w=1200&h=630&fit=crop"
 ---
 
 # Как ИИ меняет управление проектами

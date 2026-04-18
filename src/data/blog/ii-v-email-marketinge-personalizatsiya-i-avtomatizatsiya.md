@@ -4,7 +4,7 @@ description: "Узнайте, как ИИ революционизирует ema
 pubDate: 2026-04-05
 author: "Upgrade"
 tags: ["ИИ", "email-маркетинг", "персонализация", "автоматизация", "маркетинг"]
-cover: "https://ima-pr.ru/uploads/posts/2023-10/653b9a4b5b5b4.jpg"
+cover: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop"
 ---
 
 ## ИИ в email-маркетинге: персонализация и автоматизация

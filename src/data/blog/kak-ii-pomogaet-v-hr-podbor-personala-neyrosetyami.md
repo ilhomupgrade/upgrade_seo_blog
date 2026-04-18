@@ -4,7 +4,7 @@ description: "Узнайте, как искусственный интеллек
 pubDate: 2026-03-26
 author: "Upgrade"
 tags: ["ИИ в HR", "подбор персонала", "нейросети", "рекрутинг", "автоматизация"]
-cover: "https://potok.io/blog/hr-howto/artificial-intelligence-in-recruitment/"
+cover: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=630&fit=crop"
 ---
 
 # Как ИИ помогает в HR: подбор персонала нейросетями

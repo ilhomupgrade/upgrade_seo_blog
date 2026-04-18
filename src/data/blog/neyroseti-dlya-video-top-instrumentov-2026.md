@@ -4,7 +4,7 @@ description: "Обзор лучших нейросетей для создани
 pubDate: 2026-03-22
 author: "Upgrade"
 tags: ["нейросети", "видеоконтент", "ИИ для видео", "генерация видео", "AI инструменты"]
-cover: "https://vc.ru/u/2000000/favicon-152-152.png"
+cover: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&h=630&fit=crop"
 ---
 
 # Нейросети для видео: топ-инструментов 2026

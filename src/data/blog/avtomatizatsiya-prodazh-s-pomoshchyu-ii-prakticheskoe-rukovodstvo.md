@@ -4,7 +4,7 @@ description: "Пошаговое руководство по внедрению 
 pubDate: 2026-03-23
 author: "Upgrade"
 tags: ["ИИ в продажах", "Автоматизация бизнеса", "Практическое руководство"]
-cover: "https://habr.com/ru/articles/799127/images/0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+cover: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=630&fit=crop"
 ---
 
 # Автоматизация продаж с помощью ИИ - практическое руководство

@@ -4,7 +4,7 @@ description: "Пошаговое руководство по внедрению 
 pubDate: 2026-04-12
 author: "Upgrade"
 tags: ["промышленный ИИ", "внедрение ИИ", "производство", "предиктивное обслуживание", "контроль качества"]
-cover: "https://habrastorage.org/getpro/habr/upload_files/072/0a5/8e9/0720a58e9b8e4a4a4b4e4a4b4e4a4b4e.jpg"
+cover: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=1200&h=630&fit=crop"
 ---
 
 # Как внедрить ИИ в производство

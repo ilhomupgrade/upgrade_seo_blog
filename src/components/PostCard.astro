@@ -11,15 +11,48 @@ const date = post.data.pubDate.toLocaleDateString('ru-RU', {
   month: 'long',
   day: 'numeric',
 });
+const cover = post.data.cover || '/og-default.jpg';
 ---
 
 <a href={`/blog/${post.id}/`} class="post-card">
-  <h3>{post.data.title}</h3>
-  <p>{post.data.description}</p>
-  <div class="meta">
-    <time datetime={post.data.pubDate.toISOString()}>{date}</time>
-    {post.data.tags.length > 0 && (
-      <span> &middot; {post.data.tags.join(', ')}</span>
-    )}
+  <div class="cover">
+    <img src={cover} alt={post.data.title} loading="lazy" decoding="async" />
+  </div>
+  <div class="body">
+    <h3>{post.data.title}</h3>
+    <p>{post.data.description}</p>
+    <div class="meta">
+      <time datetime={post.data.pubDate.toISOString()}>{date}</time>
+      {post.data.tags.length > 0 && (
+        <span> &middot; {post.data.tags.join(', ')}</span>
+      )}
+    </div>
   </div>
 </a>
+
+<style>
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cover {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+  }
+  .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .post-card:hover .cover img {
+    transform: scale(1.03);
+  }
+  .body {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+</style>

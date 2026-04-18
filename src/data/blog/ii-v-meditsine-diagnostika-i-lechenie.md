@@ -4,7 +4,7 @@ description: "Как искусственный интеллект меняет 
 pubDate: 2026-04-16
 author: "Upgrade"
 tags: ["ИИ в медицине", "диагностика ИИ", "лечение болезней", "нейросети здравоохранение", "медицинский ИИ"]
-cover: "https://sbermed.ai/static/images/sbermed-logo.png"
+cover: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&h=630&fit=crop"
 ---
 
 # ИИ в медицине: диагностика и лечение

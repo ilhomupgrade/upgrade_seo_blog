@@ -4,7 +4,7 @@ description: "Сравниваем GPT-4o, Claude и Gemini по задачам 
 pubDate: 2026-03-25
 author: "Upgrade"
 tags: ["GPT-4o", "Claude", "Gemini", "ИИ для бизнеса", "нейросети 2026"]
-cover: "https://aibotmanager.ru/wp-content/uploads/2026/01/chatgpt-claude-gemini-matrix.jpg"
+cover: "https://images.unsplash.com/photo-1678483789111-3a04c4628bd6?w=1200&h=630&fit=crop"
 ---
 
 # GPT-4o vs Claude vs Gemini: выбор для бизнеса

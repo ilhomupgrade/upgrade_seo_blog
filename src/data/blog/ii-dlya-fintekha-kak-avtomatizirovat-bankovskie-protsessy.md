@@ -4,7 +4,7 @@ description: "Узнайте, как искусственный интеллек
 pubDate: 2026-04-15
 author: "Upgrade"
 tags: ["ИИ в банках", "финтех", "автоматизация", "скоринг", "RPA", "чат-боты"]
-cover: "Рекомендуется использовать стоковое изображение с ключевыми словами: AI, banking automation, fintech, neural networks"
+cover: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&h=630&fit=crop"
 ---
 
 ## ИИ для финтеха: как автоматизировать банковские процессы

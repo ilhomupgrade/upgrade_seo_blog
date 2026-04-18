@@ -4,7 +4,7 @@ description: "Нейросети революционизируют маркет
 pubDate: 2026-03-24
 author: "Upgrade"
 tags: ["ИИ в маркетинге", "нейросети", "реклама", "таргетинг", "персонализация"]
-cover: "https://www.bitrix24.ru/upload/medialibrary/4e8/4e8b0a0b0b0b0b0b0b0b0b0b0b0b0b0b.png"
+cover: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop"
 ---
 
 # ИИ в маркетинге: как нейросети меняют рекламу

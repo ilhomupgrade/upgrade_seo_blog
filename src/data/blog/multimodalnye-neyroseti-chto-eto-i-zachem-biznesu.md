@@ -4,7 +4,7 @@ description: "Разбираем, что такое мультимодальны
 pubDate: 2026-04-08
 author: "Upgrade"
 tags: ["мультимодальные нейросети", "ИИ для бизнеса", "Multimodal AI"]
-cover: "https://habrastorage.org/getpro/habr/upload_files/Storage/89/217/892/892172/0c2a4e7a-0e4d-4e0f-9b5d-5b5e5e5e5e5e.png"
+cover: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=1200&h=630&fit=crop"
 ---
 
 # Мультимодальные нейросети: что это и зачем бизнесу

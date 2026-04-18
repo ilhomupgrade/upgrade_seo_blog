@@ -4,7 +4,7 @@ description: "Узнайте, как RAG-системы учат ИИ работ
 pubDate: 2026-04-04
 author: "Upgrade"
 tags: ["RAG", "ИИ", "нейросети", "документы", "LLM"]
-cover: "https://habrastorage.yandeximg.ru/get/habr-upload/main/6f9/0b5/1e7/rag-qdrant-diagram.png"
+cover: "https://images.unsplash.com/photo-1568667256549-094345857637?w=1200&h=630&fit=crop"
 ---
 
 # RAG-системы: как научить ИИ работать с вашими документами

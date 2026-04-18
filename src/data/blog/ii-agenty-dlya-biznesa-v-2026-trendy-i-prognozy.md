@@ -4,7 +4,7 @@ description: "ИИ-агенты меняют бизнес в 2026 году. Уз
 pubDate: 2026-03-19
 author: "Upgrade"
 tags: ["ИИ-агенты", "тренды 2026", "автоматизация бизнеса", "Agentic AI", "ИИ для бизнеса"]
-cover: "https://habrastorage.org/getpro/habr/upload_files/Storage/1014/910_1.jpg"
+cover: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=630&fit=crop"
 ---
 
 # ИИ-агенты для бизнеса в 2026: тренды и прогнозы

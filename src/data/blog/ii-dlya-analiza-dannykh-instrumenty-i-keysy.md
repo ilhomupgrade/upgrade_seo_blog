@@ -4,7 +4,7 @@ description: "ИИ меняет анализ данных: топ-инструм
 pubDate: 2026-03-31
 author: "Upgrade"
 tags: ["ИИ", "анализ данных", "инструменты ИИ", "кейсы ИИ", "машинное обучение"]
-cover: "https://habrastorage.yandexcloud.net/getpro/habr/post_images/2f6/0e4/4b2/2f60e44b2b1e8e1a0a1a1a1a1a1a1a1a.jpg"
+cover: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=630&fit=crop"
 ---
 
 # ИИ для анализа данных: инструменты и кейсы

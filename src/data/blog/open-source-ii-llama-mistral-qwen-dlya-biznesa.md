@@ -4,7 +4,7 @@ description: "Открытые модели ИИ Llama, Mistral и Qwen лиди
 pubDate: 2026-04-17
 author: "Upgrade"
 tags: ["ИИ для бизнеса", "Open source модели", "Llama Mistral Qwen"]
-cover: "https://huggingface.co/Qwen/Qwen2.5-72B-Instruct/resolve/main/logo.png"
+cover: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1200&h=630&fit=crop"
 ---
 
 # Open source ИИ: Llama, Mistral, Qwen для бизнеса

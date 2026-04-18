@@ -4,7 +4,7 @@ description: "Узнайте, как чат-боты экономят ресур
 pubDate: 2026-03-27
 author: "Upgrade"
 tags: ["чат-боты", "автоматизация бизнеса", "ИИ для продаж", "Telegram боты", "CRM интеграция"]
-cover: "https://emailmatrix.ru/wp-content/uploads/2023/10/chatbot-examples-1.jpg"
+cover: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=1200&h=630&fit=crop"
 ---
 
 ## Чат-боты для бизнеса: как создать эффективного помощника

@@ -4,7 +4,7 @@ description: "Как ИИ меняет рынок недвижимости: то
 pubDate: 2026-04-07
 author: "Upgrade"
 tags: ["ИИ в недвижимости", "автоматизация оценки", "продажи с ИИ", "нейросети риелторам"]
-cover: "https://flexitech.ai/blog/ai_real_estate_cover.jpg"
+cover: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=630&fit=crop"
 ---
 
 ## ИИ в недвижимости: автоматизация оценки и продаж

@@ -4,7 +4,7 @@ description: "Узнайте, как ИИ меняет копирайтинг д
 pubDate: 2026-04-13
 author: "Upgrade"
 tags: ["ИИ-копирайтинг", "нейросети для текстов", "AI для бизнеса"]
-cover: "https://vc.ru/static/img/vc/main@2x.48f4c.png"
+cover: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&h=630&fit=crop"
 ---
 
 ## ИИ-копирайтинг: как нейросети пишут тексты для бизнеса
