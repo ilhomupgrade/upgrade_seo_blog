@@ -23,17 +23,33 @@ export const GET: APIRoute = async ({ request }) => {
     const fromStr = from.toISOString().split('T')[0];
     const todayStr = today.toISOString().split('T')[0];
 
-    // 1. Ищем одну свежую новость с источниками
-    const newsSearch = await askPerplexityWithCitations(
-      apiKey,
-      'Ты - новостной аналитик в сфере ИИ. Ищешь только реальные, подтвержденные новости с указанием источников. Отвечай только валидным JSON.',
-      `Найди ОДНУ самую значимую новость в сфере искусственного интеллекта за период с ${fromStr} по ${todayStr}.
+    // 1. Ищем одну свежую новость с источниками - с несколькими попытками
+    let newsSearch: { content: string; citations: string[] } | null = null;
+    let news: any = null;
+    let qualitySources: string[] = [];
+    const angles = [
+      'релиз модели или продукта от OpenAI, Anthropic, Google, Meta, Microsoft, Mistral',
+      'крупная сделка, инвестиция или партнерство в ИИ',
+      'внедрение ИИ в крупной российской компании или госсекторе',
+      'исследование или научный прорыв в ИИ',
+      'регуляторная новость по ИИ (ЕС, США, Россия, Китай)',
+    ];
 
-Новость должна быть:
-- Реальной и подтвержденной первоисточником (официальный сайт, пресс-релиз, крупное отраслевое издание - не YouTube, не соцсети)
-- Интересной для бизнес-аудитории (релиз модели, крупная сделка, запуск продукта, исследование, регуляция)
-- Произошедшей именно в указанный период
-- В sources_used верни 2-4 разных URL: первоисточник + независимые публикации в профильных СМИ (TechCrunch, The Verge, Habr, vc.ru, РБК и т.п.)
+    for (let attempt = 0; attempt < angles.length && qualitySources.length < 2; attempt++) {
+      newsSearch = await askPerplexityWithCitations(
+        apiKey,
+        'Ты - новостной аналитик в сфере ИИ. Ищешь только реальные, подтвержденные новости с указанием источников. Отвечай только валидным JSON.',
+        `Найди ОДНУ самую значимую новость за период с ${fromStr} по ${todayStr} по направлению: ${angles[attempt]}.
+
+Новость должна:
+- Быть реальной и освещенной как минимум в ДВУХ разных текстовых изданиях
+- Иметь первоисточник - официальный сайт компании / пресс-релиз / крупное СМИ (techcrunch.com, theverge.com, reuters.com, bloomberg.com, habr.com, vc.ru, rbc.ru, forbes.ru и подобные)
+- Произошла именно в указанный период
+
+КРИТИЧЕСКИ ВАЖНО для sources_used:
+- Минимум 2 разных URL на ТЕКСТОВЫЕ статьи в СМИ или официальные пресс-релизы
+- ЗАПРЕЩЕНО: youtube.com, youtu.be, twitter.com, x.com, t.me, instagram.com, facebook.com, tiktok.com
+- Это должны быть прямые ссылки на статьи, НЕ главные страницы сайтов
 
 Верни JSON:
 {
@@ -41,30 +57,26 @@ export const GET: APIRoute = async ({ request }) => {
   "summary": "Что произошло - 2-3 предложения с ключевыми фактами и датами",
   "date": "Дата события в формате YYYY-MM-DD",
   "key_entities": ["компании", "люди", "продукты - названия как в оригинале"],
-  "sources_used": ["URL1", "URL2"]
+  "sources_used": ["URL1", "URL2", "URL3"]
 }`,
-      0.3,
-      1500,
-    );
+        0.3,
+        1500,
+      );
 
-    const news = parseJSON(newsSearch.content);
-    if (!news?.headline || !news?.summary) {
-      return json({ error: 'Не удалось найти свежую новость', raw: newsSearch.content }, 500);
+      const parsed = parseJSON(newsSearch.content);
+      if (!parsed?.headline) continue;
+      news = parsed;
+      const all = [...new Set([...(newsSearch.citations || []), ...(parsed.sources_used || [])])].filter(Boolean);
+      qualitySources = all.filter((u: string) => !/youtube\.com|youtu\.be|x\.com|twitter\.com|t\.me|instagram\.com|facebook\.com|tiktok\.com/i.test(u));
+      if (qualitySources.length >= 2) break;
     }
 
-    // Citations от Sonar - это реальные URL, которые модель использовала
-    const citations = [...new Set([
-      ...(newsSearch.citations || []),
-      ...(news.sources_used || []),
-    ])].filter(Boolean);
-
-    if (citations.length < 1) {
-      return json({ error: 'Нет источников для новости', news, citations }, 422);
+    if (!news?.headline) {
+      return json({ error: 'Не удалось найти свежую новость ни по одному направлению' }, 500);
     }
-    // Фильтруем мусорные источники (YouTube, соцсети) - для SEO нужны текстовые СМИ
-    const qualitySources = citations.filter((u) => !/youtube\.com|youtu\.be|x\.com|twitter\.com|t\.me|instagram\.com|facebook\.com/i.test(u));
-    if (qualitySources.length < 1) {
-      return json({ error: 'Источники только из соцсетей/видео - неподходит', citations }, 422);
+
+    if (qualitySources.length < 2) {
+      return json({ error: 'Не удалось найти 2+ качественных текстовых источника', news, qualitySources }, 422);
     }
 
     // Дубль-чек по заголовку
