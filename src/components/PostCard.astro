@@ -8,10 +8,11 @@ interface Props {
 const { post } = Astro.props;
 const date = post.data.pubDate.toLocaleDateString('ru-RU', {
   year: 'numeric',
-  month: 'long',
+  month: 'short',
   day: 'numeric',
 });
 const cover = post.data.cover || '/og-default.jpg';
+const primaryTag = post.data.tags?.[0];
 ---
 
 <a href={`/blog/${post.id}/`} class="post-card">
@@ -19,13 +20,13 @@ const cover = post.data.cover || '/og-default.jpg';
     <img src={cover} alt={post.data.title} loading="lazy" decoding="async" />
   </div>
   <div class="body">
+    {primaryTag && <span class="pill">{primaryTag}</span>}
     <h3>{post.data.title}</h3>
     <p>{post.data.description}</p>
     <div class="meta">
+      <span class="author">{post.data.author || 'Upgrade'}</span>
+      <span class="dot">&bull;</span>
       <time datetime={post.data.pubDate.toISOString()}>{date}</time>
-      {post.data.tags.length > 0 && (
-        <span> &middot; {post.data.tags.join(', ')}</span>
-      )}
     </div>
   </div>
 </a>
@@ -34,25 +35,51 @@ const cover = post.data.cover || '/og-default.jpg';
   .post-card {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
   }
   .cover {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 10;
     overflow: hidden;
+    border-radius: 14px;
     background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 1.25rem;
   }
   .cover img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s ease;
   }
   .post-card:hover .cover img {
     transform: scale(1.03);
   }
   .body {
-    padding: 1.25rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .pill {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    font-size: 0.8125rem;
+    color: #a78bfa;
+    margin-bottom: 1rem;
+    background: transparent;
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+  .meta .author {
+    color: var(--text);
+  }
+  .meta .dot {
+    opacity: 0.5;
   }
 </style>

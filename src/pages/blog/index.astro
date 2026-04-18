@@ -12,7 +12,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   title="Все статьи"
   description="Статьи про внедрение ИИ в бизнес, автоматизацию процессов и полезные инструменты."
 >
-  <main class="container">
+  <main class="container posts-wide">
     <Breadcrumbs items={[
       { label: 'Главная', href: '/' },
       { label: 'Блог' },
