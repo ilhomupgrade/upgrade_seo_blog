@@ -23,6 +23,28 @@ export async function askPerplexityWithCitations(
   temperature = 0.5,
   maxTokens = 4000,
 ): Promise<PerplexityResponse> {
+  return askOpenRouter(apiKey, 'perplexity/sonar', systemPrompt, userPrompt, temperature, maxTokens);
+}
+
+export async function askGemini(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+  temperature = 0.5,
+  maxTokens = 8000,
+): Promise<string> {
+  const { content } = await askOpenRouter(apiKey, 'google/gemini-3-flash-preview', systemPrompt, userPrompt, temperature, maxTokens);
+  return content;
+}
+
+async function askOpenRouter(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  userPrompt: string,
+  temperature: number,
+  maxTokens: number,
+): Promise<PerplexityResponse> {
   const response = await fetch(OPENROUTER_API, {
     method: 'POST',
     headers: {
@@ -30,7 +52,7 @@ export async function askPerplexityWithCitations(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'perplexity/sonar',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -41,7 +63,7 @@ export async function askPerplexityWithCitations(
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status} ${await response.text()}`);
+    throw new Error(`OpenRouter API error (${model}): ${response.status} ${await response.text()}`);
   }
 
   const data = await response.json();

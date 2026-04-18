@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { neon } from '@neondatabase/serverless';
-import { askPerplexityWithCitations, parseJSON } from '../../../lib/perplexity';
+import { askPerplexityWithCitations, askGemini, parseJSON } from '../../../lib/perplexity';
 import { slugify } from '../../../lib/slugify';
 
 export const prerender = false;
@@ -87,52 +87,55 @@ export const GET: APIRoute = async ({ request }) => {
       return json({ skipped: true, reason: 'Такая новость уже есть', headline: news.headline });
     }
 
-    // 2. Глубокий обзор новости
-    const sourcesBlock = qualitySources.map((u, i) => `[${i + 1}] ${u}`).join('\n');
-    const articleResp = await askPerplexityWithCitations(
+    // 2. Скачиваем HTML первоисточников и извлекаем основной текст
+    const sourceTexts = await Promise.all(qualitySources.slice(0, 5).map(fetchSourceText));
+    const sourcesBlock = qualitySources.slice(0, 5).map((u, i) => {
+      const text = sourceTexts[i];
+      return `[${i + 1}] ${u}\n${text ? text.slice(0, 4000) : '(не удалось скачать)'}`;
+    }).join('\n\n---\n\n');
+
+    // 3. Рерайт через Gemini 3 Flash на основе фактов из источников
+    const articleContent = await askGemini(
       apiKey,
       `Ты - старший аналитик AI-агентства Upgrade. Пишешь глубокие экспертные обзоры новостей ИИ на русском языке для бизнес-аудитории.
 
 Жесткие правила:
 - Статья 1200-1800 слов
-- Структура: что произошло -> контекст и предыстория -> технический разбор -> влияние на бизнес в России -> что делать сейчас -> CTA
-- В каждом фактологическом утверждении ставь ссылку на источник в формате [(источник)](url)
+- Структура: что произошло -> контекст и предыстория -> технический разбор -> влияние на бизнес в России -> что делать сейчас -> CTA к услугам Upgrade
+- В каждом фактологическом утверждении ставь ссылку на источник в формате [(источник)](url) - используй реальные URL из предоставленных источников
 - Используй ТОЛЬКО факты из предоставленных источников, ничего не выдумывай
-- Не менее 4 ссылок на источники в тексте
+- Минимум 5 ссылок на источники в тексте
 - Живой экспертный язык, без канцелярита
 - Подзаголовки ## и ###, списки, конкретные цифры
-- Не используй букву е с точками
+- Не используй букву е с двумя точками (латинскую e-umlaut)
 - Не используй длинные тире, только короткие (-)
 - Не используй эмодзи
-- Формат: чистый Markdown`,
-      `Напиши глубокий экспертный обзор новости.
+- Формат: чистый Markdown
+- Отвечай только валидным JSON без комментариев`,
+      `Напиши глубокий экспертный обзор новости на основе предоставленных материалов из первоисточников.
 
 НОВОСТЬ: ${news.headline}
 СУТЬ: ${news.summary}
 ДАТА: ${news.date}
 КЛЮЧЕВЫЕ СУЩНОСТИ: ${(news.key_entities || []).join(', ')}
 
-ИСТОЧНИКИ (используй их ссылки в тексте):
+МАТЕРИАЛЫ ПЕРВОИСТОЧНИКОВ (используй ТОЛЬКО факты отсюда, ссылайся на URL):
 ${sourcesBlock}
 
-Для обложки: из предоставленных источников возьми прямой URL главной иллюстрации (og:image или первое большое фото на странице). URL должен быть на реальный jpg/png/webp, НЕ на логотип сайта и НЕ на favicon. Если на странице нет подходящего изображения - верни null.
-
-Верни JSON:
+Верни ТОЛЬКО валидный JSON без markdown-обертки:
 {
-  "title": "SEO-заголовок на русском, СТРОГО до 70 символов, с ключевой сущностью и сутью новости",
-  "description": "SEO-описание СТРОГО до 150 символов включая пробелы (это жесткое ограничение схемы сайта), с датой и главным фактом",
+  "title": "SEO-заголовок на русском, СТРОГО до 70 символов",
+  "description": "SEO-описание СТРОГО до 150 символов включая пробелы, с датой и главным фактом",
   "tags": ["3-5 тегов на русском"],
-  "cover_url": "прямой URL на изображение из первоисточника (og:image или крупное фото статьи), либо null если не нашел",
-  "cover_source": "URL первоисточника, с которого взята картинка",
-  "content": "Полный markdown текст статьи 1200-1800 слов со ссылками на источники в формате [(источник)](url) внутри текста. В конце раздел '## Источники' со списком всех использованных ссылок."
+  "content": "Полный markdown-текст статьи 1200-1800 слов со ссылками [(источник)](url) внутри текста. В конце раздел '## Источники' со списком всех ссылок."
 }`,
       0.4,
-      6000,
+      12000,
     );
 
-    const article = parseJSON(articleResp.content);
+    const article = parseJSON(articleContent);
     if (!article?.title || !article?.content) {
-      return json({ error: 'Не удалось сгенерировать обзор', raw: articleResp.content }, 500);
+      return json({ error: 'Gemini не сгенерировал обзор', raw: articleContent.slice(0, 2000) }, 500);
     }
 
     // Жесткая проверка: минимум 3 ссылки в тексте
@@ -141,23 +144,21 @@ ${sourcesBlock}
       return json({ error: 'Слишком мало ссылок на источники в тексте', linkCount, content: article.content }, 422);
     }
 
-    // Валидируем cover_url от модели и при неудаче пытаемся вытащить og:image из первого источника
-    const cover = await resolveCover(article.cover_url, qualitySources);
+    // Обложка: парсим og:image из первого источника (Gemini не даёт cover_url)
+    const cover = await resolveCover(null, qualitySources);
     if (!cover) {
-      return json({ error: 'Не удалось получить картинку из первоисточников', tried_cover: article.cover_url, sources: qualitySources }, 422);
+      return json({ error: 'Не удалось получить картинку из первоисточников', sources: qualitySources }, 422);
     }
 
     const slug = slugify(article.title);
     const tags = article.tags || [];
-    const allCitations = [...new Set([...qualitySources, ...(articleResp.citations || [])])];
+    const allCitations = [...qualitySources];
 
-    // Сохраняем source_url как JSON с исходной новостью и всеми цитатами
     const sourceData = JSON.stringify({
       headline: news.headline,
       news_date: news.date,
       citations: allCitations,
       cover,
-      cover_source: article.cover_source || null,
     });
 
     const result = await sql`
@@ -206,6 +207,35 @@ function json(data: any, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+async function fetchSourceText(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UpgradeBot/1.0)' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    // Грубая очистка: выкидываем script/style/nav/header/footer, оставляем текст
+    const cleaned = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+      .replace(/<header[\s\S]*?<\/header>/gi, '')
+      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return cleaned;
+  } catch {
+    return null;
+  }
 }
 
 async function resolveCover(modelUrl: string | null | undefined, sources: string[]): Promise<string | null> {
