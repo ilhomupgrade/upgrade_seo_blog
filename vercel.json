@@ -13,6 +13,18 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/prompt/",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/prompt/",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/prompt/",
+      "schedule": "0 16 * * *"
+    },
+    {
       "path": "/api/cron/generate/",
       "schedule": "0 9 * * 1-5"
     }

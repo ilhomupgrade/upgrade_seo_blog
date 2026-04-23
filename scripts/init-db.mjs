@@ -52,6 +52,18 @@ async function init() {
     )
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS prompt_posts (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      prompt_text TEXT NOT NULL,
+      how_to_use TEXT NOT NULL DEFAULT '',
+      audience TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      published_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   console.log('Tables created successfully!');
 
   const rows = await sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`;
