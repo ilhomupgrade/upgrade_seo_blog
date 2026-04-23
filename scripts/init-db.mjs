@@ -38,10 +38,24 @@ async function init() {
     )
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS news_posts (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      what_happened TEXT NOT NULL DEFAULT '',
+      why_it_matters TEXT NOT NULL DEFAULT '',
+      source_url TEXT NOT NULL UNIQUE,
+      source_name TEXT NOT NULL DEFAULT '',
+      image_url TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      published_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   console.log('Tables created successfully!');
 
-  const { rows } = await sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`;
-  console.log('Tables:', rows.map(r => r.tablename));
+  const rows = await sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`;
+  console.log('Tables:', rows.map((r) => r.tablename));
 }
 
 init().catch(console.error);
