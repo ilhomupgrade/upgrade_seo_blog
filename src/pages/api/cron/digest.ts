@@ -9,8 +9,8 @@ const BOT_UA = 'Mozilla/5.0 (compatible; UpgradeBot/1.0)';
 
 type NewsPost = {
   title: string;
-  summary: string;
-  why_it_matters: string;
+  story: string;
+  angle: string;
   source_url: string;
   source_name: string;
   event_date?: string;
@@ -60,14 +60,14 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { content, citations } = await askPerplexityWithCitations(
       apiKey,
-      'Ты - автор Telegram-канала про ИИ. Твоя задача - выбрать одну самую важную свежую новость и подать ее как короткий авторский обзор: живо, понятно, без сухой телеграфной подачи. Отвечай только валидным JSON без комментариев.',
+      'Ты - автор Telegram-канала про ИИ. Твоя задача - выбрать одну важную свежую новость и написать ее как живой авторский мини-разбор: факт, развитие, контекст, вывод. Отвечай только валидным JSON без комментариев.',
       `Найди ОДНУ самую важную и свежую новость в сфере искусственного интеллекта за период с ${fromStr} по ${nowStr}.
 
 Формат ответа:
 {
   "title": "короткий заголовок до 90 символов",
-  "summary": "короткий обзор новости на 2-3 предложения, связный, не тезисный",
-  "why_it_matters": "что это значит - 1-2 предложения для широкой аудитории",
+  "story": "авторский мини-разбор новости на 4-7 коротких абзацев. Все абзацы должны быть внутри ОДНОЙ JSON-строки, разделяй их символами \\n\\n. Раскрой: что произошло, кто заметил или сообщил, какие детали важны, как отреагировали пользователи или рынок, какой контекст стоит знать",
+  "angle": "короткий авторский вывод на 1-2 предложения: почему это важно, что это сигнализирует или в чем главный конфликт",
   "source_url": "прямая ссылка на лучшую текстовую статью или официальный первоисточник",
   "source_name": "название источника",
   "event_date": "YYYY-MM-DD"
@@ -78,9 +78,15 @@ export const GET: APIRoute = async ({ request }) => {
 - Только реальные свежие события
 - Без воды, без хайпа, без канцелярита
 - Писать на русском, просто и понятно
-- Тон как у хорошего автора обзоров, а не как у телеграфа
-- Не писать рублеными тезисами
-- summary должен читаться как цельный короткий абзац
+- Тон как у хорошего автора Telegram-разборов, а не как у телеграфа
+- Не писать рублеными тезисами и не использовать списки
+- story должен быть разбит на короткие абзацы через пустую строку
+- Критично: story должен быть одной валидной JSON-строкой. Не создавай отдельные пустые ключи, не выноси абзацы в отдельные поля
+- Для переносов абзацев внутри story используй только \\n\\n
+- Общая длина текста после заголовка: примерно 1800-3000 знаков
+- Обязательно дай конкретные детали: цифры, даты, имена, продукты, реакцию пользователей или компании, если они есть в источниках
+- Не выдумывай факты, используй только то, что нашел в источниках
+- Разрешена авторская позиция: можно написать "главная проблема", "это сигнал", "похоже", если вывод логично следует из фактов
 - Не использовать эмодзи
 - Не использовать длинные тире, только короткие (-)
 - source_url должен быть прямой ссылкой на текстовую статью или официальный анонс
@@ -99,7 +105,7 @@ ${excludedTitles || 'нет'}
     );
 
     const parsed = parseJSON(content) as NewsPost | null;
-    if (!parsed?.title || !parsed?.summary || !parsed?.why_it_matters) {
+    if (!parsed?.title || !parsed?.story || !parsed?.angle) {
       return json({ error: 'Модель не вернула валидную новость', raw: content.slice(0, 1000) }, 500);
     }
 
@@ -130,8 +136,8 @@ ${excludedTitles || 'нет'}
         INSERT INTO news_posts (title, what_happened, why_it_matters, source_url, source_name, image_url, published_at)
         VALUES (
           ${parsed.title},
-          ${parsed.summary},
-          ${parsed.why_it_matters},
+          ${parsed.story},
+          ${parsed.angle},
           ${sourceUrl},
           ${parsed.source_name || sourceLabelFromUrl(sourceUrl)},
           ${null},
@@ -155,8 +161,8 @@ ${excludedTitles || 'нет'}
 function buildTelegramPost(news: NewsPost): string {
   const parts = [
     `<b>${escapeHtml(news.title.trim())}</b>`,
-    sanitizeTelegramText(news.summary),
-    news.why_it_matters ? sanitizeTelegramText(news.why_it_matters) : null,
+    sanitizeTelegramText(news.story),
+    news.angle ? sanitizeTelegramText(news.angle) : null,
     '@news_upgrade',
   ].filter(Boolean);
 
